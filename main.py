@@ -40,7 +40,7 @@ if __name__ == "__main__":
 
     parser = argparse.ArgumentParser(description='Label studio')
     parser.add_argument(
-        '-p', '--port', dest='port', type=int, default=9090,
+        '-p', '--port', dest='port', type=int, default=9091,
         help='Server port')
     parser.add_argument(
         '--host', dest='host', type=str, default='0.0.0.0',
@@ -120,8 +120,8 @@ if __name__ == "__main__":
     )
 
     # Đăng ký Swagger UI blueprint
-    app.register_blueprint(swagger_ui_blueprint, url_prefix=SWAGGER_URL)
-    # app.run(host=args.host, port=args.port, debug=args.debug, ssl_context=('/app/cert.pem', '/app/privkey.pem'))
+    # app.register_blueprint(swagger_ui_blueprint, url_prefix=SWAGGER_URL)
+    app.run(host=args.host, port=args.port, debug=args.debug, ssl_context=('/app/cert.pem', '/app/privkey.pem'))
     app.run(host=args.host, port=args.port, debug=args.debug)
     CORS(app,resources={r"/*": {"origins": "*"}})
 
