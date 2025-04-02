@@ -362,11 +362,9 @@ class MyModel(AIxBlockMLBase):
 
         print('fit() completed successfully.')
 
-    def action(self, project, command, collection, **kwargs):
+    def action(self, command, **kwargs):
         print(f"""
-                project: {project},
                 command: {command},
-                collection: {collection},
                 kwargs: {kwargs}
             """)
         if command.lower() == "train":
