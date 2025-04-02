@@ -903,7 +903,7 @@ class MyModel(AIxBlockMLBase):
                 import cv2
                 print(input_img)
                 img_64 = numpy_to_base64(input_img)
-                result = self.action(project, "predict", "", data={"image": img_64})
+                result = self.action("predict", data={"image": img_64})
                 print(result)
                 if result['result']:
                     if TYPE_ENV == "DETECTION" or TYPE_ENV == 'polygon-segmentation':
@@ -1116,7 +1116,7 @@ class MyModel(AIxBlockMLBase):
 
         return {"share_url": share_url, 'local_url': local_url}
 
-    def model(self, **kwargs):
+    def model_trail(self, **kwargs):
         while self.is_init_model_trial:
             time.sleep(1)
 
