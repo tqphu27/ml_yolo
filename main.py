@@ -4,16 +4,7 @@ from fastapi.responses import FileResponse, RedirectResponse
 from typing import Dict, Any, Optional
 from model import MyModel
 import os
-import threading
-import subprocess
-import psutil
-from pathlib import Path
-import logging
-from apscheduler.schedulers.background import BackgroundScheduler
-from prometheus_client import push_to_gateway, CollectorRegistry
 from pydantic import BaseModel
-from loki_logger_handler.loki_logger_handler import LokiLoggerHandler
-from fastapi.responses import JSONResponse
 
 # Models for request validation
 class InstallServiceRequest(BaseModel):
@@ -50,22 +41,6 @@ LOKI_URL = os.getenv("LOKI_URL", "http://207.246.109.178:3100")
 JOB_NAME = os.getenv("JOB_NAME", "test-fastapi")
 PUSH_GATEWAY_URL = os.getenv("PUSH_GATEWAY_URL", "http://207.246.109.178:9091")
 JOB_INTERVAL = int(os.getenv("JOB_INTERVAL", 60))
-
-registry = CollectorRegistry()
-
-# Initialize scheduler and logger
-scheduler = BackgroundScheduler()
-
-logger = logging.getLogger("custom_logger")
-logger.setLevel(logging.DEBUG)
-
-custom_handler = LokiLoggerHandler(
-    url=f"{LOKI_URL}/loki/api/v1/push",
-    labels={"job_name": JOB_NAME},
-    label_keys={},
-)
-
-logger.addHandler(custom_handler)
 
 model = MyModel()
 
