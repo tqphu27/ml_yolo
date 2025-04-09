@@ -107,6 +107,17 @@ async def download_file(path: str):
 if __name__ == "__main__":
     import uvicorn
     import ssl
+    import socket
+
+    def find_available_port(start_port=3000, max_port=5000):
+        for port in range(start_port, max_port + 1):
+            try:
+                with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as s:
+                    s.bind(('0.0.0.0', port))
+                    return port
+            except OSError:
+                continue
+        raise RuntimeError("No available ports found")
 
     ssl_context = ssl.create_default_context(ssl.Purpose.CLIENT_AUTH)
     ssl_context.load_cert_chain(
@@ -114,10 +125,13 @@ if __name__ == "__main__":
         keyfile="ssl/key.pem"
     )
 
+    available_port = find_available_port()
+    print(f"Starting server on port {available_port}")
+
     uvicorn.run(
         app,
         host="0.0.0.0",
-        port=9091,
+        port=available_port,
         ssl_keyfile="ssl/key.pem",
         ssl_certfile="ssl/cert.pem"
     )
