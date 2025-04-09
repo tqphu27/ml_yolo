@@ -572,7 +572,6 @@ class MyModel(AIxBlockMLBase):
 
                 #     model = YOLO(weight_path)
                 # else:
-                    
                 if model_type == "rectanglelabels":
                     model = YOLO("yolov8n.pt")
                 elif model_type == "polygonlabels":
@@ -582,6 +581,7 @@ class MyModel(AIxBlockMLBase):
                     model = YOLO("yolov8n-seg.pt")
             
                 result = model(img)
+                
                 if model_type == "rectanglelabels":
                     print(result)
                     boxes = result[0].boxes
@@ -761,7 +761,7 @@ class MyModel(AIxBlockMLBase):
 
     def model(self, **kwargs):
         print(kwargs)
-        task = kwargs.get("task", None)
+        task = kwargs.get("task", "bounding-boxes-segmentation")
         
         import gradio as gr
         if task:
@@ -1128,7 +1128,7 @@ class MyModel(AIxBlockMLBase):
         import gradio as gr
 
         def mt_predict(input_img):
-            result = self.action("1", "predict", collection="", data={"img": input_img, "type": TYPE_ENV})
+            result = self.action("predict", data={"img": input_img, "type": TYPE_ENV})
 
             if result['result']:
                 if TYPE_ENV == "DETECTION":
