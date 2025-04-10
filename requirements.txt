@@ -29,3 +29,5 @@ gradio_client==1.5.2
 pydantic==2.10.4 
 pydantic_core==2.27.2
 apscheduler
+fastapi
+uvicorn
