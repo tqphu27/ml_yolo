@@ -47,7 +47,7 @@ model = MyModel()
 @app.post("/action")
 async def action(project: str, command: str, collection: str, data: Optional[Dict[str, Any]] = None):
     try:
-        result = model.action(project, command, collection, **(data or {}))
+        result = model.action(command, **(data or {}))
         return result
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
