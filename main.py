@@ -45,7 +45,7 @@ JOB_INTERVAL = int(os.getenv("JOB_INTERVAL", 60))
 model = MyModel()
 
 @app.post("/action")
-async def action(project: str, command: str, collection: str, data: Optional[Dict[str, Any]] = None):
+async def action(data: Optional[Dict[str, Any]] = None):
     try:
         result = model.action(command, **(data or {}))
         return result
