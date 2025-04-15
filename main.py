@@ -44,10 +44,14 @@ JOB_INTERVAL = int(os.getenv("JOB_INTERVAL", 60))
 
 model = MyModel()
 
+class ActionRequest(BaseModel):
+    command: str
+    params: Dict[str, Any]
+
 @app.post("/action")
-async def action(data: Optional[Dict[str, Any]] = None):
+async def action(request: ActionRequest):
     try:
-        result = model.action(command, **(data or {}))
+        result = model.action(request.command, **request.params)
         return result
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
