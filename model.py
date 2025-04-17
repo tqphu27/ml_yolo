@@ -58,7 +58,11 @@ from twilio.rest import Client
 
 from function_ml import connecet_project, download_dataset, upload_checkpoint
 from logging_class import start_queue, write_log
+from mcp.server.fastmcp import FastMCP
+import uuid
+CHANNEL_STATUS = {}
 
+mcp = FastMCP("aixblock-mcp")
 def decode_base64_to_image(base64_str):
     # Kiểm tra xem chuỗi base64 có chứa header không, nếu có thì loại bỏ
     if base64_str.startswith('data:image'):
@@ -387,6 +391,36 @@ class MyModel(AIxBlockMLBase):
                 
                 log_queue, logging_thread = start_queue(channel_log)
                 write_log(log_queue)
+
+                channel_name = f"{hf_model_id}_{str(uuid.uuid4())[:8]}"
+                username = ""
+                hf_model_name = ""
+
+                try:
+                    headers = {"Authorization": f"Bearer {push_to_hub_token}"}
+                    response = requests.get("https://huggingface.co/api/whoami-v2", headers=headers)
+
+                    if response.status_code == 200:
+                        data = response.json()
+                        username = data.get("name")
+                        hf_model_name = f"{username}/{hf_model_id}"
+                        print(f"Username: {username}")
+                    else:
+                        print(f"Error: {response.status_code} - {response.text}")
+                        hf_model_name = "Token not correct"
+                except Exception as e:
+                    hf_model_name = "Token not correct"
+                    print(e)
+
+        
+                # Đặt trạng thái kênh là "training"
+                CHANNEL_STATUS[channel_name] = {
+                        "status": "training",
+                        "hf_model_id": hf_model_name,
+                        "command": command,
+                        "created_at": time.time()
+                    }
+                print(f"🚀 Đã bắt đầu training kênh: {channel_name}")
                 
                 def func_train_model(clone_dir, project_id, imgsz, epochs, token, checkpoint_version, checkpoint_id, dataset_version, dataset_id):
                     project = connecet_project(HOST_NAME, token, project_id)
@@ -418,9 +452,21 @@ class MyModel(AIxBlockMLBase):
                             dataset_name = download_dataset(project, dataset_id, data_path)
                             if dataset_name: 
                                 data_zip_dir = os.path.join(data_path, dataset_name)
-                                # if not os.path.exists(dataset_path):
+
+                                # Giải nén file đầu tiên
                                 with zipfile.ZipFile(data_zip_dir, 'r') as zip_ref:
                                     zip_ref.extractall(dataset_path)
+
+                                # Kiểm tra nếu trong dataset_path chỉ có 1 file zip => giải nén tiếp
+                                extracted_files = os.listdir(dataset_path)
+                                zip_files = [f for f in extracted_files if f.endswith('.zip')]
+
+                                if len(zip_files) == 1:
+                                    inner_zip_path = os.path.join(dataset_path, zip_files[0])
+                                    print(f"🔁 Found inner zip file: {inner_zip_path}, extracting...")
+                                    with zipfile.ZipFile(inner_zip_path, 'r') as inner_zip:
+                                        inner_zip.extractall(dataset_path)
+                                    os.remove(inner_zip_path)
 
                                 data_train_dir = os.path.join(dataset_path, "data.yaml")
                                 with open(data_train_dir, 'r') as file:
@@ -467,17 +513,20 @@ class MyModel(AIxBlockMLBase):
 
                         upload_checkpoint(project, version, train_dir)
 
-                    if push_to_hub:
-                        repo = create_repo(repo_id=hf_model_id, private=False, token=push_to_hub_token,exist_ok=True)
-                                                # Đăng nhập vào Hugging Face
-                        login(token=push_to_hub_token)
+                    # if push_to_hub:
+                    repo = create_repo(repo_id=hf_model_id, private=False, token=push_to_hub_token,exist_ok=True)
+                                            # Đăng nhập vào Hugging Face
+                    login(token=push_to_hub_token)
 
-                        # Đẩy thư mục huấn luyện lên Hugging Face Hub
-                        upload_folder(
-                            folder_path=f'{train_dir}/train',  # Thư mục chứa kết quả huấn luyện
-                            repo_id=repo.repo_id,  # ID của mô hình trên Hugging Face
-                            token=push_to_hub_token
-                        )
+                    # Đẩy thư mục huấn luyện lên Hugging Face Hub
+                    upload_folder(
+                        folder_path=f'{train_dir}/train',  # Thư mục chứa kết quả huấn luyện
+                        repo_id=repo.repo_id,  # ID của mô hình trên Hugging Face
+                        token=push_to_hub_token
+                    )
+
+                    CHANNEL_STATUS[channel_name]["status"] = "Done"
+
                 # func_train_model(clone_dir, project_id, imgsz, epochs, token, checkpoint_version, checkpoint_id, dataset_version, dataset_id)
                 train_thread = threading.Thread(target=func_train_model, args=(clone_dir, project_id, imgsz, epochs, token, checkpoint_version, checkpoint_id, dataset_version, dataset_id))
 
@@ -749,7 +798,31 @@ class MyModel(AIxBlockMLBase):
             # except:
             #     return {"message": "predict failed", "result": None}
         
+        elif command == "status":
+            channel = kwargs.get("channel", None)
             
+            if channel:
+                # Nếu có truyền kênh cụ thể
+                status_info = CHANNEL_STATUS.get(channel)
+                if status_info is None:
+                    return {"channel": channel, "status": "not_found"}
+                elif isinstance(status_info, dict):
+                    return {"channel": channel, **status_info}
+                else:
+                    return {"channel": channel, "status": status_info}
+            else:
+                # Lấy tất cả kênh
+                if not CHANNEL_STATUS:
+                    return {"message": "No channels available"}
+                
+                channels = []
+                for ch, info in CHANNEL_STATUS.items():
+                    if isinstance(info, dict):
+                        channels.append({"channel": ch, **info})
+                    else:
+                        channels.append({"channel": ch, "status": info})
+                
+                return {"channels": channels}  
         # elif command.lower() == "logs":
         #     logs = fetch_logs()
         #     return {"message": "command not supported", "result": logs}

@@ -31,3 +31,4 @@ pydantic_core==2.27.2
 apscheduler
 fastapi
 uvicorn
+mcp
