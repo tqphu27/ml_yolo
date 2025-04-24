@@ -56,7 +56,7 @@ import hashlib
 from gradio_webrtc import WebRTC
 from twilio.rest import Client
 
-from function_ml import connecet_project, download_dataset, upload_checkpoint
+from function_ml import connect_project, download_dataset, upload_checkpoint
 from logging_class import start_queue, write_log
 from mcp.server.fastmcp import FastMCP
 import uuid
@@ -112,7 +112,7 @@ def mask_to_polygons(mask, max_width, max_height, simplification=0.001):
     return res, has_holes
 
 
-HOST_NAME = os.environ.get('HOST_NAME',"http://127.0.0.1:8080")
+HOST_NAME = os.environ.get('HOST_NAME',"https://dev-us-west-1.aixblock.io")
 TYPE_ENV = os.environ.get('TYPE_ENV',"DETECTION")
 
 try:
@@ -240,42 +240,42 @@ window.addEventListener("DOMContentLoaded", function() {
 });
 """
 
-def download_checkpoint(weight_zip_path, project_id, checkpoint_id, token):
-    url = f"{HOST_NAME}/api/checkpoint_model_marketplace/download/{checkpoint_id}?project_id={project_id}"
-    payload = {}
-    headers = {
-        'accept': 'application/json',
-        # 'Authorization': 'Token 5d3604c4c57def9a192950ef7b90d7f1e0bb05c1'
-        'Authorization': f'Token {token}'
-    }
-    response = requests.request("GET", url, headers=headers, data=payload) 
-    checkpoint_name = response.headers.get('X-Checkpoint-Name')
+# def download_checkpoint(weight_zip_path, project_id, checkpoint_id, token):
+#     url = f"{HOST_NAME}/api/checkpoint_model_marketplace/download/{checkpoint_id}?project_id={project_id}"
+#     payload = {}
+#     headers = {
+#         'accept': 'application/json',
+#         # 'Authorization': 'Token 5d3604c4c57def9a192950ef7b90d7f1e0bb05c1'
+#         'Authorization': f'Token {token}'
+#     }
+#     response = requests.request("GET", url, headers=headers, data=payload) 
+#     checkpoint_name = response.headers.get('X-Checkpoint-Name')
 
-    if response.status_code == 200:
-        with open(weight_zip_path, 'wb') as f:
-            f.write(response.content)
-        return checkpoint_name
+#     if response.status_code == 200:
+#         with open(weight_zip_path, 'wb') as f:
+#             f.write(response.content)
+#         return checkpoint_name
     
-    else: 
-        return None
+#     else: 
+#         return None
 
-def download_dataset(data_zip_dir, project_id, dataset_id, token):
-    # data_zip_path = os.path.join(data_zip_dir, "data.zip")
-    url = f"{HOST_NAME}/api/dataset_model_marketplace/download/{dataset_id}?project_id={project_id}"
-    payload = {}
-    headers = {
-        'accept': 'application/json',
-        'Authorization': f'Token {token}'
-    }
+# def download_dataset(data_zip_dir, project_id, dataset_id, token):
+#     # data_zip_path = os.path.join(data_zip_dir, "data.zip")
+#     url = f"{HOST_NAME}/api/dataset_model_marketplace/download/{dataset_id}?project_id={project_id}"
+#     payload = {}
+#     headers = {
+#         'accept': 'application/json',
+#         'Authorization': f'Token {token}'
+#     }
 
-    response = requests.request("GET", url, headers=headers, data=payload)
-    dataset_name = response.headers.get('X-Dataset-Name')
-    if response.status_code == 200:
-        with open(data_zip_dir, 'wb') as f:
-            f.write(response.content)
-        return dataset_name
-    else:
-        return None
+#     response = requests.request("GET", url, headers=headers, data=payload)
+#     dataset_name = response.headers.get('X-Dataset-Name')
+#     if response.status_code == 200:
+#         with open(data_zip_dir, 'wb') as f:
+#             f.write(response.content)
+#         return dataset_name
+#     else:
+#         return None
 
 # def upload_checkpoint(checkpoint_model_dir, project_id, token):
 #     url = f"{HOST_NAME}/api/checkpoint_model_marketplace/upload/"
@@ -423,7 +423,7 @@ class MyModel(AIxBlockMLBase):
                 print(f"🚀 Đã bắt đầu training kênh: {channel_name}")
                 
                 def func_train_model(clone_dir, project_id, imgsz, epochs, token, checkpoint_version, checkpoint_id, dataset_version, dataset_id):
-                    project = connecet_project(HOST_NAME, token, project_id)
+                    project = connect_project(HOST_NAME, token, project_id)
                     os.makedirs(f'{clone_dir}/data_zip', exist_ok=True)
 
                     weight_path = os.path.join(clone_dir, f"models")
@@ -469,13 +469,19 @@ class MyModel(AIxBlockMLBase):
                                     os.remove(inner_zip_path)
 
                                 data_train_dir = os.path.join(dataset_path, "data.yaml")
-                                with open(data_train_dir, 'r') as file:
-                                    data_yaml = yaml.safe_load(file)
-                                
-                                # Thay thế các đường dẫn
-                                data_yaml['train'] = os.path.join('train', 'images')
-                                data_yaml['val'] = os.path.join('val', 'images')
-                                data_yaml['test'] = os.path.join('test', 'images')
+
+                                if os.path.exists(data_train_dir):
+                                    with open(data_train_dir, 'r') as file:
+                                        data_yaml = yaml.safe_load(file)
+                                    
+                                    # Thay thế các đường dẫn
+                                    data_yaml['train'] = os.path.join('train', 'images')
+                                    data_yaml['val'] = os.path.join('val', 'images')
+                                    data_yaml['test'] = os.path.join('test', 'images')
+                                else:
+                                    data_train_dir = os.path.join(dataset_path, "dataset.yaml")
+                                    with open(data_train_dir, 'r') as file:
+                                        data_yaml = yaml.safe_load(file)
 
                                 # Ghi lại data.yaml
                                 with open(data_train_dir, 'w') as file:
@@ -485,9 +491,10 @@ class MyModel(AIxBlockMLBase):
                     if len(files) > 0:
                         model = YOLO(files[0])
                     else:
-                        model = YOLO("yolov8n.pt")
+                        model = YOLO("yolo12n.pt")
 
                     train_dir = os.path.join(os.getcwd(),f"{project_id}")
+                    print(data_train_dir, train_dir)
 
                     model.train(data=data_train_dir, imgsz=imgsz, epochs=epochs, project=train_dir)
                     # run_train(model, data_train_dir, imgsz, epochs, train_dir)
