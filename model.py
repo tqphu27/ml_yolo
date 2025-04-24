@@ -423,6 +423,7 @@ class MyModel(AIxBlockMLBase):
                 print(f"🚀 Đã bắt đầu training kênh: {channel_name}")
                 
                 def func_train_model(clone_dir, project_id, imgsz, epochs, token, checkpoint_version, checkpoint_id, dataset_version, dataset_id):
+                    print("Giá trị", HOST_NAME, token, project_id)
                     project = connect_project(HOST_NAME, token, project_id)
                     os.makedirs(f'{clone_dir}/data_zip', exist_ok=True)
 
