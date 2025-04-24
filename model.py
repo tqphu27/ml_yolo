@@ -112,7 +112,7 @@ def mask_to_polygons(mask, max_width, max_height, simplification=0.001):
     return res, has_holes
 
 
-HOST_NAME = os.environ.get('HOST_NAME',"https://dev-us-west-1.aixblock.io")
+HOST_NAME = "https://dev-us-west-1.aixblock.io"
 TYPE_ENV = os.environ.get('TYPE_ENV',"DETECTION")
 
 try:
