@@ -426,6 +426,7 @@ class MyModel(AIxBlockMLBase):
                     print("Giá trị", HOST_NAME, token, project_id)
                     project = connect_project(HOST_NAME, token, project_id)
                     os.makedirs(f'{clone_dir}/data_zip', exist_ok=True)
+                    os.makedirs(f'{clone_dir}/models', exist_ok=True)
 
                     weight_path = os.path.join(clone_dir, f"models")
                     dataset_path = os.path.join(clone_dir, f"datasets/dataset0") 
@@ -487,8 +488,11 @@ class MyModel(AIxBlockMLBase):
                                 # Ghi lại data.yaml
                                 with open(data_train_dir, 'w') as file:
                                     yaml.dump(data_yaml, file, default_flow_style=False, sort_keys=False)
-
-                    files = [os.path.join(weight_path, filename) for filename in os.listdir(weight_path) if os.path.isfile(os.path.join(weight_path, filename))]
+                    try:
+                        files = [os.path.join(weight_path, filename) for filename in os.listdir(weight_path) if os.path.isfile(os.path.join(weight_path, filename))]
+                    except:
+                        pass
+                        
                     if len(files) > 0:
                         model = YOLO(files[0])
                     else:
