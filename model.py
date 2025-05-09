@@ -504,26 +504,26 @@ class MyModel(AIxBlockMLBase):
                     model.train(data=data_train_dir, imgsz=imgsz, epochs=epochs, project=train_dir)
                     # run_train(model, data_train_dir, imgsz, epochs, train_dir)
                     
-                    subdirs = [os.path.join(train_dir, d) for d in os.listdir(train_dir) if os.path.isdir(os.path.join(train_dir, d))]
-                    latest_subdir = max(subdirs, key=os.path.getmtime)
-                    # checkpoint_model = f'{latest_subdir}/weights/last.pt'
+                    # subdirs = [os.path.join(train_dir, d) for d in os.listdir(train_dir) if os.path.isdir(os.path.join(train_dir, d))]
+                    # latest_subdir = max(subdirs, key=os.path.getmtime)
+                    # # checkpoint_model = f'{latest_subdir}/weights/last.pt'
                         
-                    # best_model = f'{latest_subdir}/weights/best.pt'
-                    if os.path.exists(train_dir):
-                        import datetime
-                        # checkpoint_name = upload_checkpoint(checkpoint_model, project_id, token)
-                        # if checkpoint_name:
-                        #     weight_path_final = os.path.join(clone_dir, "models", checkpoint_name)
-                        #     os.makedirs(weight_path_final, exist_ok=True)
-                        #     shutil.copy(checkpoint_model, weight_path_final)
+                    # # best_model = f'{latest_subdir}/weights/best.pt'
+                    # if os.path.exists(train_dir):
+                    #     import datetime
+                    #     # checkpoint_name = upload_checkpoint(checkpoint_model, project_id, token)
+                    #     # if checkpoint_name:
+                    #     #     weight_path_final = os.path.join(clone_dir, "models", checkpoint_name)
+                    #     #     os.makedirs(weight_path_final, exist_ok=True)
+                    #     #     shutil.copy(checkpoint_model, weight_path_final)
 
-                        # output_dir = "./data/checkpoint"
-                        now = datetime.datetime.now()
-                        date_str = now.strftime("%Y%m%d")
-                        time_str = now.strftime("%H%M%S")
-                        version = f'{date_str}-{time_str}'
+                    #     # output_dir = "./data/checkpoint"
+                    #     now = datetime.datetime.now()
+                    #     date_str = now.strftime("%Y%m%d")
+                    #     time_str = now.strftime("%H%M%S")
+                    #     version = f'{date_str}-{time_str}'
 
-                        upload_checkpoint(project, version, train_dir)
+                    #     upload_checkpoint(project, version, train_dir)
 
                     # if push_to_hub:
                     repo = create_repo(repo_id=hf_model_id, private=False, token=push_to_hub_token,exist_ok=True)
