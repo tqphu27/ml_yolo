@@ -68,18 +68,3 @@ class MyModel(BaseModel):
             predictions.append(task_prediction)
         return predictions
 ```
-
-#### Training module
-Training could be made in a separate environment. The only one convention is that data iterator and working directory are specified as input arguments for training function which outputs JSON-serializable resources consumed later by `load()` function in inference module.
-
-```python
-def train(input_iterator, working_dir, **kwargs):
-    """Here you gather input examples and output labels and train your model"""
-    resources = {"model_path": "some/model/path", "labels": ["aaa", "bbb", "ccc"]}
-    return resources
-```
-
-(base) macbookpro16@192 yolov8 % docker tag yolov8-yolo wowai/ml_default
-(base) macbookpro16@192 yolov8 % docker tag yolov8-yolo wowai/object_detection_with_bounding_boxes
-(base) macbookpro16@192 yolov8 % docker tag yolov8-yolo wowai/semantic_segmentation_with_masks    
-(base) macbookpro16@192 yolov8 % docker tag yolov8-yolo wowai/semantic_segmentation_with_polygons
