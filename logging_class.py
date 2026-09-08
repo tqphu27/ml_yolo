@@ -13,9 +13,6 @@ CENTRIFUGE_TOPIC_PREFIX = os.environ.get("CENTRIFUGE_TOPIC_PREFIX", "")
 HOST_NAME = os.getenv("HOST_NAME", "https://app.aixblock.io")
 TOKEN = os.getenv("TOKEN", "3cf7af3b5e87cd8674c548689ffa53561a2a8388")
 
-HOST_NAME = "http://127.0.0.1:8080"
-TOKEN = "f81b54e7b72cb6dc7e0c4367de3b8d8a59b6a093"
-
 if CENTRIFUGE_TOPIC_PREFIX == "":
     if HOST_NAME == "":
         CENTRIFUGE_TOPIC_PREFIX = "prefix/"

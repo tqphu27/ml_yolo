@@ -112,7 +112,7 @@ def mask_to_polygons(mask, max_width, max_height, simplification=0.001):
     return res, has_holes
 
 
-HOST_NAME = "https://dev-us-west-1.aixblock.io"
+HOST_NAME = os.environ.get('HOST_NAME', "https://app.aixblock.io")
 TYPE_ENV = os.environ.get('TYPE_ENV',"DETECTION")
 
 try:
@@ -378,11 +378,12 @@ class MyModel(AIxBlockMLBase):
                 epochs = kwargs.get("epochs", 20)
                 imgsz = kwargs.get("imgsz", 640)
                 project_id = kwargs.get("project_id")
-                token = kwargs.get("token")
+                token = kwargs.get("token") or os.environ.get("TOKEN")
                 checkpoint_version = kwargs.get("checkpoint_version")
                 checkpoint_id = kwargs.get("checkpoint")
                 dataset_version = kwargs.get("dataset_version")
                 dataset_id = kwargs.get("dataset")
+                host_name = kwargs.get("host_name") or os.environ.get("HOST_NAME", HOST_NAME)
                 push_to_hub = kwargs.get("push_to_hub", True)
                 hf_model_id = kwargs.get("hf_model_id", "deepseek-v3-1b")
                 channel_log = kwargs.get("channel_log", "training_logs")
@@ -422,9 +423,9 @@ class MyModel(AIxBlockMLBase):
                     }
                 print(f"🚀 Đã bắt đầu training kênh: {channel_name}")
                 
-                def func_train_model(clone_dir, project_id, imgsz, epochs, token, checkpoint_version, checkpoint_id, dataset_version, dataset_id):
-                    print("Giá trị", HOST_NAME, token, project_id)
-                    project = connect_project(HOST_NAME, token, project_id)
+                def func_train_model(clone_dir, project_id, imgsz, epochs, token, checkpoint_version, checkpoint_id, dataset_version, dataset_id, host_name):
+                    print("Giá trị", host_name, token, project_id)
+                    project = connect_project(host_name, token, project_id)
                     os.makedirs(f'{clone_dir}/data_zip', exist_ok=True)
                     os.makedirs(f'{clone_dir}/models', exist_ok=True)
 
@@ -549,7 +550,7 @@ class MyModel(AIxBlockMLBase):
                     upload_checkpoint(project, version, train_dir)
 
                 # func_train_model(clone_dir, project_id, imgsz, epochs, token, checkpoint_version, checkpoint_id, dataset_version, dataset_id)
-                train_thread = threading.Thread(target=func_train_model, args=(clone_dir, project_id, imgsz, epochs, token, checkpoint_version, checkpoint_id, dataset_version, dataset_id))
+                train_thread = threading.Thread(target=func_train_model, args=(clone_dir, project_id, imgsz, epochs, token, checkpoint_version, checkpoint_id, dataset_version, dataset_id, host_name))
 
                 train_thread.start()
 
