@@ -539,6 +539,15 @@ class MyModel(AIxBlockMLBase):
 
                     CHANNEL_STATUS[channel_name]["status"] = "Done"
 
+                    import datetime
+
+                    now = datetime.datetime.now()
+                    date_str = now.strftime("%Y%m%d")
+                    time_str = now.strftime("%H%M%S")
+                    version = f"{date_str}-{time_str}"
+
+                    upload_checkpoint(project, version, train_dir)
+
                 # func_train_model(clone_dir, project_id, imgsz, epochs, token, checkpoint_version, checkpoint_id, dataset_version, dataset_id)
                 train_thread = threading.Thread(target=func_train_model, args=(clone_dir, project_id, imgsz, epochs, token, checkpoint_version, checkpoint_id, dataset_version, dataset_id))
 
